@@ -1,0 +1,234 @@
+<html>
+  <head>
+    <title>Codenames Duet Starring Lindaniel ❤</title>
+    <style type="text/css">
+      body {
+        margin: 0;
+        padding: 0;
+        max-width: 300px;
+      }
+      .container {
+        width: 320px;
+        padding: 16px;
+      }
+      .rotated {
+        transform: rotate(180deg);
+      }
+      #board {
+        width: 100%;
+      }
+      .row div {
+        display: inline-block;
+      }
+      .cell {
+        height: 20px;
+        width: 20px;
+        background-color: #5e5e5e;
+        margin: 4px;
+      }
+      .cell.T {
+        background-color: #edcb89;
+      }
+      .cell.G {
+        background-color: #62bc3c;
+      }
+      .cell.B {
+        background-color: #130f2d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <input type="text" id="seed" placeholder="Enter seed" />
+      <button id="p1Button" onclick="generateBoardState(0)">Player 1</button>
+      <button id="p2Button" onclick="generateBoardState(1)">Player 2</button>
+      <button id="rotate" onclick="rotateBoard()">Rotate</button>
+      <div id="board">
+        <div class="row">
+          <div class="cell" id="cell-0"></div>
+          <div class="cell" id="cell-1"></div>
+          <div class="cell" id="cell-2"></div>
+          <div class="cell" id="cell-3"></div>
+          <div class="cell" id="cell-4"></div>
+        </div>
+        <div class="row">
+          <div class="cell" id="cell-5"></div>
+          <div class="cell" id="cell-6"></div>
+          <div class="cell" id="cell-7"></div>
+          <div class="cell" id="cell-8"></div>
+          <div class="cell" id="cell-9"></div>
+        </div>
+        <div class="row">
+          <div class="cell" id="cell-10"></div>
+          <div class="cell" id="cell-11"></div>
+          <div class="cell" id="cell-12"></div>
+          <div class="cell" id="cell-13"></div>
+          <div class="cell" id="cell-14"></div>
+        </div>
+        <div class="row">
+          <div class="cell" id="cell-15"></div>
+          <div class="cell" id="cell-16"></div>
+          <div class="cell" id="cell-17"></div>
+          <div class="cell" id="cell-18"></div>
+          <div class="cell" id="cell-19"></div>
+        </div>
+        <div class="row">
+          <div class="cell" id="cell-20"></div>
+          <div class="cell" id="cell-21"></div>
+          <div class="cell" id="cell-22"></div>
+          <div class="cell" id="cell-23"></div>
+          <div class="cell" id="cell-24"></div>
+        </div>
+      </div>
+      <div id="rotate-text"></div>
+    </div>
+    <script>
+      /**
+ * Creates a pseudo-random value generator. The seed must be an integer.
+ *
+ * Uses an optimized version of the Park-Miller PRNG.
+ * http://www.firstpr.com.au/dsp/rand31/
+ */
+function Random(seed) {
+  this._seed = seed % 2147483647;
+  if (this._seed <= 0) this._seed += 2147483646;
+}
+
+/**
+ * Returns a pseudo-random value between 1 and 2^32 - 2.
+ */
+Random.prototype.next = function () {
+  return this._seed = this._seed * 16807 % 2147483647;
+};
+
+
+/**
+ * Returns a pseudo-random floating point number in range [0, 1).
+ */
+Random.prototype.nextFloat = function (opt_minOrMax, opt_max) {
+  // We know that result of next() will be 1 to 2147483646 (inclusive).
+  return (this.next() - 1) / 2147483646;
+};
+
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  var s = parseInt(document.getElementById("seed").value);
+  if (typeof s !== "number" || isNaN(s)) {
+    s = 5;
+  }
+  var r = new Random(s);
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(r.nextFloat() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+  return array;
+}
+      function generateBoardState(player) {
+        var board = new Array(25);
+        for (var i = 0; i < 25; i++) {
+          if (i == 0) {
+            board[i] = ['B', 'G'];
+          }
+          if (i >= 1 && i < 6) {
+            board[i] = ['T', 'G'];
+          }
+          if (i >= 6 && i < 9) {
+            board[i] = ['G', 'G'];
+          }
+          if (i >= 9 && i < 10) {
+            board[i] = ['B', 'T'];
+          }
+          if (i >= 10 && i < 17) {
+            board[i] = ['T', 'T'];
+          }
+          if (i >= 17 && i < 22) {
+            board[i] = ['G', 'T'];
+          }
+          if (i >= 22 && i < 23) {
+            board[i] = ['B', 'B'];
+          }
+          if (i >= 23 && i < 24) {
+            board[i] = ['T', 'B'];
+          }
+          if (i >= 24 && i < 25) {
+            board[i] = ['G', 'B'];
+          }
+        }
+        console.log(board);
+        shuffle(board);
+        console.log(board);
+        board.forEach(function (clzz, idx) {
+          var cell = document.getElementById("cell-" + idx);
+          cell.className = "cell " + clzz[player];
+        });
+
+        var hash = "#";
+        hash += document.getElementById("seed").value;
+        hash += "player" + player;
+        if (document.getElementById("rotate-text").textContent === "rotated") {
+          hash += "r";
+        }
+        if (history.pushState) {
+          history.pushState(null, null, hash);
+        } else {
+          location.hash = hash;
+        }
+      }
+
+      function rotateBoard() {
+        var board = document.getElementById("board");
+        var toSet = "rotated"
+        if (board.classList.contains("rotated")) {
+          toSet = "";
+        }
+        board.className = toSet;
+        document.getElementById("rotate-text").textContent = toSet;
+      }
+
+      function onLoad() {
+        var hash = window.location.hash;
+        if (hash && hash.length > 1 && hash !== "player") {
+          var rotated = false;
+          if (hash.lastIndexOf("r") === hash.length - 1) {
+            rotated = true;
+            hash = hash.substring(0, hash.length - 1);
+          }
+          var player = -1;
+          var playerIdx = hash.indexOf("player");
+          if (playerIdx != -1) {
+            var endIdx = playerIdx + "player".length;
+            player = parseInt(hash.substring(endIdx, endIdx + 1));
+            if (player != 0 && player != 1) {
+              player = -1;
+            }
+            hash = hash.substring(0, playerIdx);
+          }
+          var seed = NaN;
+          if (hash.length) {
+            seed = parseInt(hash.substring(1));
+          }
+          if (! seed.isNaN) {
+            document.getElementById("seed").value = "" + seed;
+          }
+          if (player === 0 || player === 1) {
+            generateBoardState(player);
+          }
+          if (rotated) {
+            rotateBoard();
+          }
+        }
+      }
+
+      window.onload = function() { onLoad(); };
+    </script>
+  </body>
+</html>
